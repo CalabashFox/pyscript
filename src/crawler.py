@@ -29,9 +29,9 @@ def load_tissue_hist(data, uat, hist_type, variation_type, positive_name, negati
     total = hist['data-hist-tested']
     if total == '-' or total == '':
         return
-    if pos != '-' and pos != '':
+    if pos != '-' and pos != '' and pos != '0':
         data.tissues.append(Tissue(variation_type, positive_name, int(pos), int(total), True))
-    if neg != '-' and neg != '':
+    if neg != '-' and neg != '' and neg != '0':
         data.tissues.append(Tissue(variation_type, negative_name, int(neg), int(total), False))
 
 
@@ -133,16 +133,16 @@ def load_gen_data(data):
     data.gen_seq = h.find('input', attrs={'name': 'end'})['value']
 
 
-def load_gen(gen):
+def load_gen(wb, index, gen):
     print('Loading', gen)
-    data = Data(gen)
+    data = Data(index, gen)
     load_gen_data(data)
     load_fusion(data)
     load_tissue(data)
     load_frameshift(data, 'deletion_frameshift', 'Deletion')
     load_frameshift(data, 'insertion_frameshift', 'Insertion')
     load_snv(data)
-    output(data, '/Users/mu/' + data.gen + '.xlsx')
+    output(wb, data)
 
 
 def filter_gen(arr, gen):
@@ -158,15 +158,23 @@ def filter_gen(arr, gen):
     return gens
 
 
-def main(gen):
-    search_param['ln'] = gen
-    j = fetch_json(search_url, init_param(search_param, gen, None, None))
-    if no_result(j):
-        print('No result for ', gen)
-    else:
-        for gen in filter_gen(j_data(j), gen):
-            load_gen(gen)
+def work(wb, genes):
+    for gen in genes:
+        gene_name = gen[1]
+        j = fetch_json(search_url, search_param(gene_name))
+        if no_result(j):
+            print('No result for ', gene_name)
+        else:
+            for g in filter_gen(j_data(j), gene_name):
+                load_gen(wb, g[0], g)
+
+
+def main(input_path, output_path):
+    wb = create_xlsx(output_path)
+    genes = get_gene_list(input_path)
+    work(wb, genes)
+    write(wb, output_path)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2])

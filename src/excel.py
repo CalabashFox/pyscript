@@ -6,9 +6,37 @@ cols = ['No.', 'ID', 'Gene', 'Transcript RefSeq ID', 'Variation Location',
         'Agent', 'Ref.', 'Criteria/Study ID', 'Note/Study ref.']
 
 
-def output(data, output_path):
-    sheet = None
-    row = 0
+def create_xlsx(output_path):
+    wb = Workbook()
+    sheet = wb.create_sheet('data')
+    for i, v in enumerate(cols):
+        sheet.cell(row=1, column=i + 1).value = v
+    return wb
+
+
+def write(wb, output_path):
+    wb.save(output_path)
+
+
+def get_gene_list(input_path):
+    with open(input_path) as f:
+        return [(i + 1, x.strip()) for i, x in enumerate(f.readlines())]
+
+
+def get_genes(input_path):
+    genes = []
+    wb = load_workbook(input_path)
+    genes_sheet = wb.get_sheet_by_name('Ref.')
+    for r in range(5, genes_sheet.max_row):
+        index = genes_sheet.cell(row=r, column=1).value
+        gen = genes_sheet.cell(row=r, column=2).value
+        genes.append((index, gen))
+    return genes
+
+
+def output(wb, data):
+    sheet = wb.get_sheet_by_name('data')
+    row = sheet.max_row
 
     def standard():
         cell(2, data.gen_id)
@@ -19,12 +47,8 @@ def output(data, output_path):
         nonlocal row
         sheet.cell(row=row, column=col).value = val
 
-    wb = Workbook()
-    sheet = wb.create_sheet(data.gen)
-    row = 1
-    for i, v in enumerate(cols):
-        cell(i + 1, v)
-    row += 1
+    cell(1, 'index')
+
     for tissue in data.tissues:
         standard()
         cell(8, tissue.variation_type)
@@ -57,9 +81,6 @@ def output(data, output_path):
             cell(8, 'SNV')
             cell(14, elem.score)
         row += 1
-
-    wb.save(output_path)
-    pass
 
 
 def combined_list(data):

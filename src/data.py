@@ -2,7 +2,8 @@ import re
 
 
 class Data(object):
-    def __init__(self, gen):
+    def __init__(self, index, gen):
+        self.index = index
         self.gen = gen
         self.gen_seq = 0
         self.gen_id = 0
@@ -52,7 +53,14 @@ class Frameshift(object):
         self.link = link
         self.count = 1
         self.references = references
-        self.order_mut = int(re.findall('\d+', self.aa_mut)[0])
+        n = re.findall('\d+', self.aa_mut)
+        if len(n) == 0:
+            self.order_mut = 0
+        else:
+            self.order_mut = int(n[0])
+
+    def incr(self):
+        self.count += 1
 
     def __repr__(self):
         return 'transcript: {}, type: {}, conseq: {}, aa_mut: {}, cds_mut: {}, link: {}'\
@@ -71,7 +79,11 @@ class SNV(object):
         self.link = link
         self.count = 1
         self.references = references
-        self.order_mut = int(re.findall('\d+', self.aa_mut)[0])
+        n = re.findall('\d+', self.aa_mut)
+        if len(n) == 0:
+            self.order_mut = 0
+        else:
+            self.order_mut = int(n[0])
 
     def incr(self):
         self.count += 1

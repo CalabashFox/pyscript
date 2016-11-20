@@ -6,13 +6,12 @@ import json
 import re
 import sys
 
-search_url = 'http://cancer.sanger.ac.uk/cosmic/gene/search'
+search_url = 'http://cancer.sanger.ac.uk/cosmic/search/genes'
 
-search_param = {
-    'census': 'y',
+search_params = {
     'export': 'json',
     'sEcho': 1,
-    'iColumns': 2,
+    'iColumns': 4,
     'sColumns': '',
     'iDisplayStart': 0,
     'iDisplayLength': 100,
@@ -163,6 +162,12 @@ def fetch_json(url, params={}, h=headers):
 
 def urlencode(params):
     return urllib.parse.urlencode(params, doseq=True)
+
+
+def search_param(gen):
+    params = search_params.copy()
+    params['q'] = gen
+    return params
 
 
 def init_param(param, ln, gen_id, gen_seq):
