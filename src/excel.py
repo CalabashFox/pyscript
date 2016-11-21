@@ -6,7 +6,7 @@ cols = ['No.', 'ID', 'Gene', 'Transcript RefSeq ID', 'Variation Location',
         'Agent', 'Ref.', 'Criteria/Study ID', 'Note/Study ref.']
 
 
-def create_xlsx(output_path):
+def create_xlsx():
     wb = Workbook()
     sheet = wb.create_sheet('data')
     for i, v in enumerate(cols):
@@ -36,7 +36,7 @@ def get_genes(input_path):
 
 def output(wb, data):
     sheet = wb.get_sheet_by_name('data')
-    row = sheet.max_row
+    row = sheet.max_row + 1
 
     def standard():
         cell(2, data.gen_id)
@@ -47,7 +47,7 @@ def output(wb, data):
         nonlocal row
         sheet.cell(row=row, column=col).value = val
 
-    cell(1, 'index')
+    cell(1, data.index)
 
     for tissue in data.tissues:
         standard()
@@ -56,6 +56,7 @@ def output(wb, data):
         hnscc = 'HNSCC ({:.1%}, {}/{})'.format(float(tissue.value)/tissue.total, tissue.value, tissue.total)
         cell(13, hnscc)
         row += 1
+        print(row)
     for fusion in data.fusions:
         standard()
         cell(8, 'Fusion')
@@ -64,6 +65,7 @@ def output(wb, data):
         cell(17, fusion.link)
         cell(18, fusion.count)
         row += 1
+        print(row)
     for elem in combined_list(data):
         standard()
         var_loc = '{} {} / {}'.format(data.gen, elem.aa_mut, elem.cds_mut)
@@ -81,6 +83,7 @@ def output(wb, data):
             cell(8, 'SNV')
             cell(14, elem.score)
         row += 1
+        print(row)
 
 
 def combined_list(data):
@@ -91,4 +94,3 @@ def combined_list(data):
         l.append(frameshift)
     l.sort(key=lambda x: x.order_mut)
     return l
-

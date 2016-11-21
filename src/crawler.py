@@ -1,10 +1,4 @@
 #!/usr/local/bin/python3
-import openpyxl
-from bs4 import BeautifulSoup
-import urllib
-import urllib3
-import os
-import json
 import re
 import sys
 from data import *
@@ -87,14 +81,14 @@ def load_fs_data(data, arr, variation_type, frameshift):
             if mut_id in data.frameshifts:
                 data.frameshifts[mut_id].incr()
             else:
-                references = get_reference(data, mut_id)
+                references = get_reference(mut_id)
                 data.frameshifts[mut_id] = Frameshift(mut_id, transcript, variation_type, 'Frameshift',
                                                       aa_mut, cds_mut, link, references)
     else:
         if mut_id in data.snvs:
             data.snvs[mut_id].incr()
         else:
-            references = get_reference(data, mut_id)
+            references = get_reference(mut_id)
             data.snvs[mut_id] = SNV(mut_id, transcript, get_snv_conseq(mut_id),
                                     aa_mut, cds_mut, get_pathogenic_score(mut_id), link, references)
 
@@ -117,7 +111,7 @@ def filter_reference(title):
     return any(x in title.lower() for x in reference_filter)
 
 
-def get_reference(data, mut_id):
+def get_reference(mut_id):
     j = fetch_json(reference_url, init_param(reference_params, None, mut_id, None))
     references = []
     for arr in j_data(j):
@@ -165,12 +159,15 @@ def work(wb, genes):
         if no_result(j):
             print('No result for ', gene_name)
         else:
-            for g in filter_gen(j_data(j), gene_name):
-                load_gen(wb, g[0], g)
+            filtered = filter_gen(j_data(j), gene_name)
+            if len(filtered) == 0:
+                print('No result for ', gene_name)
+            for g in filtered:
+                load_gen(wb, gen[0], g)
 
 
 def main(input_path, output_path):
-    wb = create_xlsx(output_path)
+    wb = create_xlsx()
     genes = get_gene_list(input_path)
     work(wb, genes)
     write(wb, output_path)

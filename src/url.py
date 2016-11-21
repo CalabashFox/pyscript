@@ -1,10 +1,7 @@
 from bs4 import BeautifulSoup
 import urllib
 import urllib3
-import os
 import json
-import re
-import sys
 
 search_url = 'http://cancer.sanger.ac.uk/cosmic/search/genes'
 
@@ -36,7 +33,7 @@ fusion_params = {
     'iColumns': 6,
     'sColumns': '',
     'iDisplayStart': 0,
-    'iDisplayLength': 100,
+    'iDisplayLength': 600,
     'sSearch': '',
     'bRegex': False,
     'iSortCol_0': 0,
@@ -68,7 +65,7 @@ frameshift_params = {
     'iColumns': 6,
     'sColumns': '',
     'iDisplayStart': 0,
-    'iDisplayLength': 100,
+    'iDisplayLength': 600,
     'sSearch': 'upper aerodigestive tract',
     'bRegex': False,
     'iSortCol_0': 0,
@@ -94,7 +91,7 @@ snv_params = {
     'iColumns': 19,
     'sColumns': '',
     'iDisplayStart': 0,
-    'iDisplayLength': 500,
+    'iDisplayLength': 800,
     'sn': 'upper_aerodigestive_tract',
     'bRegex': False,
     'iSortCol_0': 0,
@@ -112,7 +109,7 @@ reference_params = {
     'iColumns': 7,
     'sColumns': '',
     'iDisplayStart': 0,
-    'iDisplayLength': 60,
+    'iDisplayLength': 1200,
     'sSearch': '',
     'bRegex': False,
     'iSortCol_0': 0,
@@ -150,12 +147,16 @@ def decode(data):
     return data.decode('gbk', 'ignore').encode('utf-8')
 
 
-def fetch_html(url, params={}, h=headers):
+def fetch_html(url, params=None, h=headers):
+    if params is None:
+        params = {}
     r = http.request('GET', url, fields=params, headers=h)
     return BeautifulSoup(decode(r.data), "html.parser")
 
 
-def fetch_json(url, params={}, h=headers):
+def fetch_json(url, params=None, h=headers):
+    if params is None:
+        params = {}
     r = http.request('GET', url, fields=params, headers=h)
     return json.loads(r.data.decode('utf-8'))
 
