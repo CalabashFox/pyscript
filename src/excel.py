@@ -1,4 +1,7 @@
 from openpyxl import *
+from data import *
+import os
+
 
 cols = ['No.', 'ID', 'Gene', 'Transcript RefSeq ID', 'Variation Location',
         'Gencode Transcript', 'Exons', 'Variation Type', 'Molecular Conseq', 'Translocation Name',
@@ -6,16 +9,45 @@ cols = ['No.', 'ID', 'Gene', 'Transcript RefSeq ID', 'Variation Location',
         'Agent', 'Ref.', 'Criteria/Study ID', 'Note/Study ref.']
 
 
-def create_xlsx():
-    wb = Workbook()
-    sheet = wb.create_sheet('data')
-    for i, v in enumerate(cols):
-        sheet.cell(row=1, column=i + 1).value = v
+def load_xlsx(xlsx_path):
+    wb = None
+    if os.path.isfile(xlsx_path):
+        wb = load_workbook(xlsx_path)
+    else:
+        wb = Workbook()
+        sheet = wb.create_sheet('data')
+        for i, v in enumerate(cols):
+            sheet.cell(row=1, column=i + 1).value = v
     return wb
 
 
-def write(wb, output_path):
-    wb.save(output_path)
+def write_misses(output_path):
+    file = open(output_path + '_misses.txt', 'a')
+    for miss in misses:
+        file.write(miss + '\n')
+
+
+def load_references(reference_path):
+    if os.path.isfile(reference_path):
+        with open(reference_path) as f:
+            for line in f.readlines():
+                if line.strip() == '':
+                    continue
+                index, title = line.split('\t', 1)
+                references_dict[title] = int(index)
+
+
+def write_references(reference_path):
+    file = open(reference_path, 'w')
+    references = [str] * len(references_dict)
+    for key, value in references_dict.items():
+        references[value] = key
+    for index, reference in enumerate(references):
+        file.write('{}\t{}\n'.format(index, reference))
+
+
+def write(wb, xlsx_path):
+    wb.save(xlsx_path)
 
 
 def get_gene_list(input_path):
@@ -56,16 +88,14 @@ def output(wb, data):
         hnscc = 'HNSCC ({:.1%}, {}/{})'.format(float(tissue.value)/tissue.total, tissue.value, tissue.total)
         cell(13, hnscc)
         row += 1
-        print(row)
     for fusion in data.fusions:
         standard()
         cell(8, 'Fusion')
         cell(9, '-')
         cell(10, fusion.mutation)
         cell(17, fusion.link)
-        cell(18, fusion.count)
+        cell(18, 'count=' + str(fusion.count))
         row += 1
-        print(row)
     for elem in combined_list(data):
         standard()
         var_loc = '{} {} / {}'.format(data.gen, elem.aa_mut, elem.cds_mut)
@@ -74,7 +104,7 @@ def output(wb, data):
         cell(9, elem.conseq)
         cell(11, elem.cds_mut)
         cell(12, elem.aa_mut.split('.', 1)[1])
-        cell(13, '\n\n'.join(elem.references))
+        cell(13, '  '.join(map(str, elem.references)))
         cell(17, elem.link)
         cell(18, 'count=' + str(elem.count))
         if elem.type == 0:
@@ -83,7 +113,6 @@ def output(wb, data):
             cell(8, 'SNV')
             cell(14, elem.score)
         row += 1
-        print(row)
 
 
 def combined_list(data):

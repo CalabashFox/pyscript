@@ -5,6 +5,7 @@ from data import *
 from url import *
 from soup import *
 from excel import *
+from json.decoder import JSONDecodeError
 
 http = urllib3.PoolManager()
 
@@ -112,12 +113,17 @@ def filter_reference(title):
 
 
 def get_reference(mut_id):
-    j = fetch_json(reference_url, init_param(reference_params, None, mut_id, None))
     references = []
-    for arr in j_data(j):
-        title = parse(arr[0]).span['title']
-        if filter_reference(title):
-            references.append(title)
+    try:
+        j = fetch_json(reference_url, init_param(reference_params, None, mut_id, None))
+        for arr in j_data(j):
+            title = parse(arr[0]).span['title'].strip()
+            if filter_reference(title):
+                if title not in references_dict:
+                    references_dict[title] = len(references_dict)
+                references.append(references_dict[title])
+    except Exception as e:
+        print(e)
     return references
 
 
@@ -158,20 +164,25 @@ def work(wb, genes):
         j = fetch_json(search_url, search_param(gene_name))
         if no_result(j):
             print('No result for ', gene_name)
+            misses.append(gene_name)
         else:
             filtered = filter_gen(j_data(j), gene_name)
             if len(filtered) == 0:
                 print('No result for ', gene_name)
+                misses.append(gene_name)
             for g in filtered:
                 load_gen(wb, gen[0], g)
 
 
-def main(input_path, output_path):
-    wb = create_xlsx()
+def main(input_path, xlsx_path, reference_path):
+    load_references(reference_path)
+    wb = load_xlsx(xlsx_path)
     genes = get_gene_list(input_path)
     work(wb, genes)
-    write(wb, output_path)
+    write(wb, xlsx_path)
+    write_references(xlsx_path)
+    write_misses(xlsx_path)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], sys.argv[3])

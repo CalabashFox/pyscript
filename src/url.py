@@ -147,17 +147,24 @@ def decode(data):
     return data.decode('gbk', 'ignore').encode('utf-8')
 
 
+no_timeout = urllib3.Timeout(connect=None, read=None)
+
+
 def fetch_html(url, params=None, h=headers):
     if params is None:
         params = {}
-    r = http.request('GET', url, fields=params, headers=h)
+    r = http.request('GET', url, fields=params, headers=h, timeout=no_timeout)
     return BeautifulSoup(decode(r.data), "html.parser")
 
 
 def fetch_json(url, params=None, h=headers):
     if params is None:
         params = {}
-    r = http.request('GET', url, fields=params, headers=h)
+    r = None
+    try:
+        r = http.request('GET', url, fields=params, headers=h, timeout=no_timeout)
+    except Exception as e:
+        print(e)
     return json.loads(r.data.decode('utf-8'))
 
 

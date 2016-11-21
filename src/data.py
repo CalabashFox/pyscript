@@ -1,5 +1,8 @@
 import re
 
+references_dict = dict()
+misses = []
+
 
 class Data(object):
     def __init__(self, index, gen):
