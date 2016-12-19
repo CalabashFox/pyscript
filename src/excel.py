@@ -38,20 +38,21 @@ def load_references(reference_path):
 
 
 def write_references(reference_path):
-    file = open(reference_path, 'w')
+    file = open(reference_path, 'a')
     references = [str] * len(references_dict)
     for key, value in references_dict.items():
         references[value] = key
     for index, reference in enumerate(references):
         file.write('{}\t{}\n'.format(index, reference))
+    file.close()
 
 
 def write(wb, xlsx_path):
     wb.save(xlsx_path)
 
 
-def get_gene_list(input_path):
-    with open(input_path) as f:
+def get_gene_list(gene_path):
+    with open(gene_path) as f:
         return [(i + 1, x.strip()) for i, x in enumerate(f.readlines())]
 
 

@@ -66,8 +66,10 @@ def get_snv_conseq(mut_id):
     conseq = overview.find('dt', text=pattern).find_next('dd').text
     if 'Missense' in conseq:
         return 'Missense'
-    else:
+    elif 'Nonsense' in conseq:
         return 'Nonsense'
+    else:
+        return 'coding silent'
 
 
 def load_fs_data(data, arr, variation_type, frameshift):
@@ -174,13 +176,13 @@ def work(wb, genes):
                 load_gen(wb, gen[0], g)
 
 
-def main(input_path, xlsx_path, reference_path):
+def main(gene_path, xlsx_path, reference_path):
     load_references(reference_path)
     wb = load_xlsx(xlsx_path)
-    genes = get_gene_list(input_path)
+    genes = get_gene_list(gene_path)
     work(wb, genes)
     write(wb, xlsx_path)
-    write_references(xlsx_path)
+    write_references(reference_path)
     write_misses(xlsx_path)
 
 
